@@ -15,7 +15,8 @@ import About from './Components/About';
 export default function App () {
   const [progress, setProgress] = useState(0)
   const pageSize = 12;
-  const apiKey = process.env.REACT_APP_NEWS_API
+  const apiKey = process.env.REACT_APP_NEWS_API;
+  console.log("API Key from env:", process.env.REACT_APP_NEWS_API);
     return (
       <div>
         <Router>

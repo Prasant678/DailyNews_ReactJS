@@ -18,16 +18,54 @@ const News = (props) => {
     const updateNews = async () => {
         props.setProgress(10);
         setLoading(true);
-        const data = await fetch(`https://newsapi.org/v2/top-headlines?country=${props.Country}&category=${props.Category}&apiKey=${props.apiKey}&page=${page}&pagesize=${props.pageSize}`)
-        props.setProgress(30);
-        let parseData = await data.json()
-        props.setProgress(70);
-        console.log(parseData);
-        setArticles(parseData.articles);
-        setTotalResults(parseData.totalResults);
+
+        // ✅ Proxy URL
+        const proxy = "https://api.allorigins.win/raw?url=";
+        const apiUrl = `https://newsapi.org/v2/top-headlines?country=${props.Country}&category=${props.Category}&apiKey=${props.apiKey}&page=${page}&pagesize=${props.pageSize}`;
+
+        try {
+            const data = await fetch(`${proxy}${encodeURIComponent(apiUrl)}`);
+            props.setProgress(30);
+
+            const parseData = await data.json();
+            props.setProgress(70);
+
+            if (parseData && parseData.articles) {
+                setArticles(parseData.articles);
+                setTotalResults(parseData.totalResults);
+            } else {
+                console.error("Invalid data from API:", parseData);
+                setArticles([]);
+            }
+        } catch (error) {
+            console.error("Error fetching news:", error);
+            setArticles([]);
+        }
+
         setLoading(false);
         props.setProgress(100);
-    }
+    };
+
+    const fetchMoreData = async () => {
+        const proxy = "https://api.allorigins.win/raw?url=";
+        const nextPage = page + 1;
+        const apiUrl = `https://newsapi.org/v2/top-headlines?country=${props.Country}&category=${props.Category}&apiKey=${props.apiKey}&page=${nextPage}&pagesize=${props.pageSize}`;
+
+        try {
+            const data = await fetch(`${proxy}${encodeURIComponent(apiUrl)}`);
+            const parseData = await data.json();
+
+            if (parseData && parseData.articles) {
+                setArticles(articles.concat(parseData.articles));
+                setTotalResults(parseData.totalResults);
+                setPage(nextPage);
+            } else {
+                console.error("Invalid response in fetchMoreData:", parseData);
+            }
+        } catch (error) {
+            console.error("Error in fetchMoreData:", error);
+        }
+    };
     useEffect(() => {
         document.title = `Daily News - ${capitalizeFirstLetter(props.Category)} News | Exclusive News`;
         updateNews();
@@ -41,17 +79,17 @@ const News = (props) => {
     //     setPage(page + 1)
     //     this.updateNews();
     // }
-    const fetchMoreData = async () => {
-        const data = await fetch(`https://newsapi.org/v2/top-headlines?country=${props.Country}&category=${props.Category}&apiKey=${props.apiKey}&page=${page + 1}&pagesize=${props.pageSize}`)
-        let parseData = await data.json()
-        console.log(parseData);
-        setArticles(articles.concat(parseData.articles))
-        setTotalResults(parseData.totalResults)
-        setPage(page + 1)
-    };
+    // const fetchMoreData = async () => {
+    //     const data = await fetch(`https://newsapi.org/v2/top-headlines?country=${props.Country}&category=${props.Category}&apiKey=${props.apiKey}&page=${page + 1}&pagesize=${props.pageSize}`)
+    //     let parseData = await data.json()
+    //     console.log(parseData);
+    //     setArticles(articles.concat(parseData.articles))
+    //     setTotalResults(parseData.totalResults)
+    //     setPage(page + 1)
+    // };
     return (
         <div className='my-3 mx-3' style={{ padding: "10px 50px 10px 70px" }}>
-            <h1 className='text-center' style={{ padding: "50px 0px 10px 0px"}}>DAILY NEWS - Top {capitalizeFirstLetter(props.Category)} Headlines</h1>
+            <h1 className='text-center' style={{ padding: "50px 0px 10px 0px" }}>DAILY NEWS - Top {capitalizeFirstLetter(props.Category)} Headlines</h1>
             <div className="btn-group my-3">
                 <button className="btn btn-primary btn-lg" type="button">
                     CATEGORY
